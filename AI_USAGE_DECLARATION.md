@@ -1,8 +1,8 @@
 # AI Usage Declaration
 
 **Project:** Echo Loop
-**Hackathon:** [Insert Hackathon Name]
-**Team/Developer:** [Insert Your Name]
+**Hackathon:** [Gamnexis]
+**Team/Developer:** [Rihan Bagwan]
 **Date:** August 2026
 
 ---
