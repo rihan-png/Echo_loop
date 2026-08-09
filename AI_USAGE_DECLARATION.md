@@ -1,8 +1,8 @@
 # AI Usage Declaration
 
 **Project:** Echo Loop
-**Hackathon:** [Insert Hackathon Name]
-**Team/Developer:** [Insert Your Name]
+**Hackathon:** [Gamnexis]
+**Team/Developer:** [Rihan Bagwan]
 **Date:** August 2026
 
 ---
@@ -44,5 +44,5 @@ I confirm that:
 3. All submitted work reflects the **original ideas and decisions of the developer**.
 4. This declaration is **accurate and complete**.
 
-**Signed:** [Your Name]
-**Date:** [Date]
+**Owner name:** Rihan Bagwan
+**Date:** 09/08/2026
