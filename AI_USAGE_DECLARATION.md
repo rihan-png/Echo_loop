@@ -44,5 +44,5 @@ I confirm that:
 3. All submitted work reflects the **original ideas and decisions of the developer**.
 4. This declaration is **accurate and complete**.
 
-**Signed:** [Your Name]
-**Date:** [Date]
+**Owner name:** Rihan Bagwan
+**Date:** 09/08/2026
