@@ -128,8 +128,13 @@ namespace EchoLoop.Editor
             if (ground != null)
             {
                 ground.transform.position = new Vector3(7, -3, 0);
-                ground.transform.localScale = new Vector3(36, 1, 1);
-                ground.GetComponent<SpriteRenderer>().color = new Color(0.25f, 0.25f, 0.35f);
+                ground.transform.localScale = Vector3.one;
+                SpriteRenderer groundRenderer = ground.GetComponent<SpriteRenderer>();
+                groundRenderer.drawMode = SpriteDrawMode.Sliced;
+                groundRenderer.size = new Vector2(36, 1);
+                groundRenderer.color = new Color(0.25f, 0.25f, 0.35f);
+                BoxCollider2D groundCollider = ground.GetComponent<BoxCollider2D>();
+                if (groundCollider != null) groundCollider.size = new Vector2(36, 1);
             }
 
             // ── Spawn Point ──
@@ -142,7 +147,12 @@ namespace EchoLoop.Editor
             {
                 player.transform.position = new Vector3(-10, -1, 0);
                 SpriteRenderer psr = player.GetComponent<SpriteRenderer>();
-                if (psr != null) psr.color = new Color(0.2f, 0.8f, 1f);
+                if (psr != null)
+                {
+                    psr.drawMode = SpriteDrawMode.Sliced;
+                    psr.size = Vector2.one;
+                    psr.color = new Color(0.2f, 0.8f, 1f);
+                }
             }
 
             // ── Camera ──
@@ -171,11 +181,13 @@ namespace EchoLoop.Editor
             // ── WIN ZONE ──
             GameObject winZoneObj = new GameObject("WinZone");
             winZoneObj.transform.position = new Vector3(23, -2, 0);
-            winZoneObj.transform.localScale = new Vector3(2, 3, 1);
             SpriteRenderer wsr = winZoneObj.AddComponent<SpriteRenderer>();
             wsr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Background.psd");
+            wsr.drawMode = SpriteDrawMode.Sliced;
+            wsr.size = new Vector2(2, 3);
             wsr.color = new Color(1f, 0.9f, 0.1f, 0.8f);
             BoxCollider2D wCol = winZoneObj.AddComponent<BoxCollider2D>();
+            wCol.size = new Vector2(2, 3);
             wCol.isTrigger = true;
             winZoneObj.AddComponent<WinZone>();
 
@@ -195,6 +207,12 @@ namespace EchoLoop.Editor
                 {
                     var root = scope.prefabContentsRoot;
                     root.tag = "Player";
+                    SpriteRenderer echoRenderer = root.GetComponent<SpriteRenderer>();
+                    if (echoRenderer != null)
+                    {
+                        echoRenderer.drawMode = SpriteDrawMode.Sliced;
+                        echoRenderer.size = Vector2.one;
+                    }
                     if (root.GetComponent<Collider2D>() == null)
                     {
                         var col = root.AddComponent<CapsuleCollider2D>();
@@ -301,11 +319,11 @@ namespace EchoLoop.Editor
         {
             var scenes = new[]
             {
-                new EditorBuildSettingsScene("Assets/EchoLoop/Scenes/MainMenu.unity", true),
                 new EditorBuildSettingsScene("Assets/EchoLoop/Scenes/Prototype.unity", true),
+                new EditorBuildSettingsScene("Assets/EchoLoop/Scenes/MainMenu.unity", true),
             };
             EditorBuildSettings.scenes = scenes;
-            Debug.Log("Build settings updated: MainMenu → Prototype");
+            Debug.Log("Build settings updated: Prototype → MainMenu");
         }
 
         // ─────────────────────────────────────────────
@@ -315,11 +333,13 @@ namespace EchoLoop.Editor
         {
             GameObject door = new GameObject(name);
             door.transform.position = position;
-            door.transform.localScale = new Vector3(1.2f, 5f, 1);
             SpriteRenderer sr = door.AddComponent<SpriteRenderer>();
             sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Background.psd");
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.size = new Vector2(1.2f, 5f);
             sr.color = color;
-            door.AddComponent<BoxCollider2D>();
+            BoxCollider2D collider = door.AddComponent<BoxCollider2D>();
+            collider.size = new Vector2(1.2f, 5f);
             door.AddComponent<Door>();
             return door;
         }
@@ -328,11 +348,13 @@ namespace EchoLoop.Editor
         {
             GameObject plate = new GameObject(name);
             plate.transform.position = position;
-            plate.transform.localScale = new Vector3(2f, 0.3f, 1);
             SpriteRenderer sr = plate.AddComponent<SpriteRenderer>();
             sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Background.psd");
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.size = new Vector2(2f, 0.3f);
             sr.color = Color.red;
             BoxCollider2D col = plate.AddComponent<BoxCollider2D>();
+            col.size = new Vector2(2f, 0.3f);
             col.isTrigger = true;
             PressurePlate pp = plate.AddComponent<PressurePlate>();
             pp.targetActivator = door.GetComponent<Door>();
@@ -345,11 +367,13 @@ namespace EchoLoop.Editor
 
             GameObject platform = new GameObject(name);
             platform.transform.position = position;
-            platform.transform.localScale = scale;
             SpriteRenderer sr = platform.AddComponent<SpriteRenderer>();
             sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Background.psd");
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.size = new Vector2(scale.x, scale.y);
             sr.color = color;
-            platform.AddComponent<BoxCollider2D>();
+            BoxCollider2D collider = platform.AddComponent<BoxCollider2D>();
+            collider.size = new Vector2(scale.x, scale.y);
         }
 
         static GameObject CreateButton(GameObject parent, string name, string label, Vector2 anchoredPos, Vector2 size)
