@@ -63,9 +63,8 @@ Assets/EchoLoop/
 
 ## Team
 
-- Developer: [Your Name]
-- Hackathon: [Hackathon Name]
-
+- Developer: [Rihan Bagwan]
+ 
 ## AI Usage Declaration
 
 AI tools (Antigravity by Google DeepMind) were used during development to assist with:
