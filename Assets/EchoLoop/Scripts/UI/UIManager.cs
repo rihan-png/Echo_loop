@@ -23,14 +23,28 @@ namespace EchoLoop.UI
 
         private void Start()
         {
-            if (winPanel != null) winPanel.SetActive(false);
-            if (hudPanel != null) hudPanel.SetActive(true);
+            // Wire win panel buttons before deactivating
+            if (winPanel != null)
+            {
+                Button[] buttons = winPanel.GetComponentsInChildren<Button>(true);
+                foreach (var btn in buttons)
+                {
+                    if (btn.gameObject.name == "RestartButton")
+                    {
+                        btn.onClick.RemoveAllListeners();
+                        btn.onClick.AddListener(RestartGame);
+                    }
+                    else if (btn.gameObject.name == "MenuButton")
+                    {
+                        btn.onClick.RemoveAllListeners();
+                        btn.onClick.AddListener(GoToMainMenu);
+                    }
+                }
 
-            // Wire win panel buttons at runtime
-            Button restartBtn = GameObject.Find("RestartButton")?.GetComponent<Button>();
-            Button menuBtn = GameObject.Find("MenuButton")?.GetComponent<Button>();
-            if (restartBtn != null) restartBtn.onClick.AddListener(RestartGame);
-            if (menuBtn != null) menuBtn.onClick.AddListener(GoToMainMenu);
+                winPanel.SetActive(false);
+            }
+
+            if (hudPanel != null) hudPanel.SetActive(true);
         }
 
         public void ShowWinScreen(int loopCount)

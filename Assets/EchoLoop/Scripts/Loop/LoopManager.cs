@@ -61,8 +61,25 @@ namespace EchoLoop.Loop
             {
                 ResetLoop(true);
             }
+            else if (UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches.Count > 0)
+            {
+                foreach (var touch in UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches)
+                {
+                    // If tapping top 15% of the screen (near the timer/loop text)
+                    if (touch.phase == UnityEngine.InputSystem.TouchPhase.Began && touch.screenPosition.y > Screen.height * 0.85f)
+                    {
+                        ResetLoop(true);
+                        break;
+                    }
+                }
+            }
 
             UpdateUI();
+        }
+
+        public void ManualReset()
+        {
+            ResetLoop(true);
         }
 
         private void ResetLoop(bool incrementLoop)
