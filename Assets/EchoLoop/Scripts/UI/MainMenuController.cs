@@ -8,8 +8,10 @@ namespace EchoLoop.UI
 {
     public class MainMenuController : MonoBehaviour
     {
+        public const string GITHUB_URL = "https://github.com/rihan-png/Echo_loop";
+
         private Text instructionText;
-        private float tapTimer = 0.3f;
+        private float tapTimer = 0.4f;
 
         private void OnEnable()
         {
@@ -23,9 +25,12 @@ namespace EchoLoop.UI
 
         private void Start()
         {
-            // Wire standard UI buttons if they exist
+            Time.timeScale = 1f;
+
+            // Wire UI buttons
             Button playBtn = GameObject.Find("PlayButton")?.GetComponent<Button>();
             Button quitBtn = GameObject.Find("QuitButton")?.GetComponent<Button>();
+            Button gitBtn = GameObject.Find("GithubButton")?.GetComponent<Button>();
 
             if (playBtn != null)
             {
@@ -39,6 +44,12 @@ namespace EchoLoop.UI
                 quitBtn.onClick.AddListener(QuitGame);
             }
 
+            if (gitBtn != null)
+            {
+                gitBtn.onClick.RemoveAllListeners();
+                gitBtn.onClick.AddListener(OpenGithubDownload);
+            }
+
             // Create or find TAP ANYWHERE text
             Canvas canvas = FindFirstObjectByType<Canvas>();
             if (canvas != null)
@@ -49,15 +60,15 @@ namespace EchoLoop.UI
                     tapObj = new GameObject("TapToPlay");
                     tapObj.transform.SetParent(canvas.transform, false);
                     Text t = tapObj.AddComponent<Text>();
-                    t.text = "TAP SCREEN OR PRESS PLAY";
+                    t.text = "TAP TO PLAY";
                     t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                    t.fontSize = 26;
+                    t.fontSize = 24;
                     t.alignment = TextAnchor.MiddleCenter;
                     t.color = new Color(1f, 1f, 1f, 0.9f);
                     RectTransform r = tapObj.GetComponent<RectTransform>();
-                    r.anchorMin = new Vector2(0.5f, 0.15f);
-                    r.anchorMax = new Vector2(0.5f, 0.25f);
-                    r.sizeDelta = new Vector2(600, 50);
+                    r.anchorMin = new Vector2(0.5f, 0.18f);
+                    r.anchorMax = new Vector2(0.5f, 0.26f);
+                    r.sizeDelta = new Vector2(500, 40);
                     r.anchoredPosition = Vector2.zero;
                     instructionText = t;
                 }
@@ -79,7 +90,7 @@ namespace EchoLoop.UI
             // Pulse text
             if (instructionText != null)
             {
-                float alpha = 0.5f + Mathf.Abs(Mathf.Sin(Time.time * 3f)) * 0.5f;
+                float alpha = 0.4f + Mathf.Abs(Mathf.Sin(Time.time * 3f)) * 0.6f;
                 Color c = instructionText.color;
                 c.a = alpha;
                 instructionText.color = c;
@@ -93,44 +104,24 @@ namespace EchoLoop.UI
                 PlayGame();
                 return;
             }
-
-            // Enhanced touch input (Reliable on all Android devices)
-            if (UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches.Count > 0)
-            {
-                foreach (var touch in UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches)
-                {
-                    if (touch.phase == UnityEngine.InputSystem.TouchPhase.Began)
-                    {
-                        PlayGame();
-                        return;
-                    }
-                }
-            }
-
-            // Standard Touchscreen input
-            if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
-            {
-                PlayGame();
-                return;
-            }
-
-            // Mouse click
-            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                PlayGame();
-                return;
-            }
         }
 
         public void PlayGame()
         {
             Debug.Log("MainMenuController: Loading Prototype...");
-            Time.timeScale = 1f; // Ensure time scale is not paused
+            Time.timeScale = 1f;
             SceneManager.LoadScene("Prototype");
+        }
+
+        public void OpenGithubDownload()
+        {
+            Debug.Log("Opening GitHub download page: " + GITHUB_URL);
+            Application.OpenURL(GITHUB_URL);
         }
 
         public void QuitGame()
         {
+            Debug.Log("Exiting Game...");
             Application.Quit();
         }
     }

@@ -21,7 +21,7 @@ namespace EchoLoop.Editor
             BuildMainMenuScene();
             BuildGameScene();
             SetupBuildSettings();
-            Debug.Log("=== FINAL BUILD COMPLETE! Press Play on MainMenu scene to test the full game! ===");
+            Debug.Log("=== FINAL BUILD COMPLETE! MainMenu is Scene 0, Prototype is Scene 1. Ready to Play/Build! ===");
         }
 
         // ─────────────────────────────────────────────
@@ -58,8 +58,8 @@ namespace EchoLoop.Editor
             titleText.alignment = TextAnchor.MiddleCenter;
             titleText.color = new Color(0.4f, 0.9f, 1f);
             RectTransform titleRect = titleObj.GetComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0.5f, 0.7f);
-            titleRect.anchorMax = new Vector2(0.5f, 0.9f);
+            titleRect.anchorMin = new Vector2(0.5f, 0.72f);
+            titleRect.anchorMax = new Vector2(0.5f, 0.92f);
             titleRect.sizeDelta = new Vector2(600, 100);
             titleRect.anchoredPosition = Vector2.zero;
 
@@ -73,30 +73,41 @@ namespace EchoLoop.Editor
             subText.alignment = TextAnchor.MiddleCenter;
             subText.color = new Color(0.8f, 0.8f, 0.8f);
             RectTransform subRect = subObj.GetComponent<RectTransform>();
-            subRect.anchorMin = new Vector2(0.5f, 0.55f);
-            subRect.anchorMax = new Vector2(0.5f, 0.7f);
-            subRect.sizeDelta = new Vector2(600, 60);
+            subRect.anchorMin = new Vector2(0.5f, 0.60f);
+            subRect.anchorMax = new Vector2(0.5f, 0.72f);
+            subRect.sizeDelta = new Vector2(600, 50);
             subRect.anchoredPosition = Vector2.zero;
 
+            // Buttons Container
             // Play Button
-            GameObject playBtnObj = CreateButton(canvasObj, "PlayButton", "PLAY", new Vector2(0, -50), new Vector2(220, 60));
-            UnityEngine.UI.Button playBtn = playBtnObj.GetComponent<UnityEngine.UI.Button>();
-            playBtnObj.GetComponentInChildren<Text>().color = Color.white;
+            GameObject playBtnObj = CreateButton(canvasObj, "PlayButton", "PLAY GAME", new Vector2(0, -20), new Vector2(260, 55), new Color(0.15f, 0.6f, 0.95f));
             
+            // Github / Download Button
+            GameObject gitBtnObj = CreateButton(canvasObj, "GithubButton", "ONLINE REPO / DOWNLOAD", new Vector2(0, -90), new Vector2(260, 50), new Color(0.2f, 0.45f, 0.35f));
+
             // Quit Button
-            GameObject quitBtnObj = CreateButton(canvasObj, "QuitButton", "QUIT", new Vector2(0, -130), new Vector2(220, 60));
-            quitBtnObj.GetComponentInChildren<Text>().color = Color.white;
+            GameObject quitBtnObj = CreateButton(canvasObj, "QuitButton", "QUIT", new Vector2(0, -155), new Vector2(260, 50), new Color(0.6f, 0.2f, 0.2f));
+
+            // Tap To Play text
+            GameObject tapObj = new GameObject("TapToPlay");
+            tapObj.transform.SetParent(canvasObj.transform, false);
+            Text t = tapObj.AddComponent<Text>();
+            t.text = "TAP SCREEN OR PRESS PLAY";
+            t.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            t.fontSize = 20;
+            t.alignment = TextAnchor.MiddleCenter;
+            t.color = new Color(1f, 1f, 1f, 0.8f);
+            RectTransform tr = tapObj.GetComponent<RectTransform>();
+            tr.anchorMin = new Vector2(0.5f, 0.16f);
+            tr.anchorMax = new Vector2(0.5f, 0.24f);
+            tr.sizeDelta = new Vector2(500, 35);
+            tr.anchoredPosition = Vector2.zero;
 
             // MainMenuController
             GameObject menuController = new GameObject("MenuController");
             MainMenuController mmc = menuController.AddComponent<MainMenuController>();
 
-            // Wire buttons
-            playBtn.onClick.AddListener(mmc.PlayGame);
-            UnityEngine.UI.Button quitBtn = quitBtnObj.GetComponent<UnityEngine.UI.Button>();
-            quitBtn.onClick.AddListener(mmc.QuitGame);
-
-            // Add EventSystem with NEW Input System module
+            // Add EventSystem
             GameObject eventSystem = new GameObject("EventSystem");
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
             eventSystem.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
@@ -115,13 +126,14 @@ namespace EchoLoop.Editor
             string protoPath = "Assets/EchoLoop/Scenes/Prototype.unity";
             var scene = EditorSceneManager.OpenScene(protoPath);
 
-            // Clean up old puzzle objects so we rebuild fresh
+            // Clean up old objects
             DestroyIfExists("Door");
             DestroyIfExists("PressurePlate");
             DestroyIfExists("Door2");
             DestroyIfExists("PressurePlate2");
             DestroyIfExists("WinZone");
             DestroyIfExists("SoundManager");
+            DestroyIfExists("UIManager");
 
             // ── Ground ──
             GameObject ground = GameObject.Find("Ground");
@@ -195,8 +207,8 @@ namespace EchoLoop.Editor
             GameObject soundObj = new GameObject("SoundManager");
             soundObj.AddComponent<SoundManager>();
 
-            // ── WIN SCREEN UI ──
-            BuildWinScreenUI();
+            // ── IN-GAME UI (HUD + Pause + Win) ──
+            BuildInGameUI();
 
             // ── Fix EchoClone prefab tag & collider ──
             string prefabPath = "Assets/EchoLoop/Prefabs/EchoClone.prefab";
@@ -244,29 +256,90 @@ namespace EchoLoop.Editor
             Debug.Log("Game scene fully rebuilt!");
         }
 
-        static void BuildWinScreenUI()
+        static void BuildInGameUI()
         {
-            // Destroy any old UIManager
-            UIManager existingUI = GameObject.FindFirstObjectByType<UIManager>();
-            if (existingUI != null) Object.DestroyImmediate(existingUI.gameObject);
-
-            // Create a dedicated UIManager object (NOT on Canvas)
-            GameObject uiManagerObj = new GameObject("UIManager");
-            UIManager uiMgr = uiManagerObj.AddComponent<UIManager>();
-
             GameObject canvas = GameObject.Find("Canvas");
             if (canvas == null) return;
 
-            // Win Panel
+            // Dedicated UIManager object
+            GameObject uiManagerObj = new GameObject("UIManager");
+            UIManager uiMgr = uiManagerObj.AddComponent<UIManager>();
+
+            // Ensure EventSystem has New Input module
+            GameObject eventSystem = GameObject.Find("EventSystem");
+            if (eventSystem != null)
+            {
+                var legacyModule = eventSystem.GetComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+                if (legacyModule != null) Object.DestroyImmediate(legacyModule);
+
+                if (eventSystem.GetComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>() == null)
+                {
+                    eventSystem.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+                }
+            }
+
+            // ── HUD PAUSE BUTTON (Top-Right) ──
+            GameObject pauseBtnObj = GameObject.Find("PauseButton");
+            if (pauseBtnObj == null)
+            {
+                pauseBtnObj = CreateButton(canvas, "PauseButton", "PAUSE ||", new Vector2(-70, -35), new Vector2(110, 40), new Color(0.3f, 0.35f, 0.45f));
+                RectTransform pRect = pauseBtnObj.GetComponent<RectTransform>();
+                pRect.anchorMin = new Vector2(1f, 1f);
+                pRect.anchorMax = new Vector2(1f, 1f);
+                pRect.anchoredPosition = new Vector2(-70, -35);
+            }
+
+            // ── PAUSE PANEL ──
+            GameObject existingPause = GameObject.Find("PausePanel");
+            if (existingPause != null) Object.DestroyImmediate(existingPause);
+
+            GameObject pausePanel = new GameObject("PausePanel");
+            pausePanel.transform.SetParent(canvas.transform, false);
+            UnityEngine.UI.Image pauseBg = pausePanel.AddComponent<UnityEngine.UI.Image>();
+            pauseBg.color = new Color(0.05f, 0.05f, 0.1f, 0.92f);
+            RectTransform ppRect = pausePanel.GetComponent<RectTransform>();
+            ppRect.anchorMin = Vector2.zero;
+            ppRect.anchorMax = Vector2.one;
+            ppRect.sizeDelta = Vector2.zero;
+
+            // Pause Title
+            GameObject pauseTitle = new GameObject("PauseTitle");
+            pauseTitle.transform.SetParent(pausePanel.transform, false);
+            Text pt = pauseTitle.AddComponent<Text>();
+            pt.text = "GAME PAUSED";
+            pt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            pt.fontSize = 54;
+            pt.fontStyle = FontStyle.Bold;
+            pt.alignment = TextAnchor.MiddleCenter;
+            pt.color = new Color(0.4f, 0.9f, 1f);
+            RectTransform ptRect = pauseTitle.GetComponent<RectTransform>();
+            ptRect.anchorMin = new Vector2(0.5f, 0.72f);
+            ptRect.anchorMax = new Vector2(0.5f, 0.88f);
+            ptRect.sizeDelta = new Vector2(600, 80);
+            ptRect.anchoredPosition = Vector2.zero;
+
+            // Pause Menu Buttons
+            CreateButton(pausePanel, "ResumeButton", "RESUME", new Vector2(0, 40), new Vector2(240, 50), new Color(0.15f, 0.6f, 0.95f));
+            CreateButton(pausePanel, "RestartButton", "RESTART LEVEL", new Vector2(0, -20), new Vector2(240, 50), new Color(0.3f, 0.5f, 0.7f));
+            CreateButton(pausePanel, "MenuButton", "MAIN MENU", new Vector2(0, -80), new Vector2(240, 50), new Color(0.4f, 0.4f, 0.5f));
+            CreateButton(pausePanel, "GithubButton", "ONLINE REPO / DOWNLOAD", new Vector2(0, -140), new Vector2(240, 45), new Color(0.2f, 0.45f, 0.35f));
+            CreateButton(pausePanel, "ExitButton", "EXIT GAME", new Vector2(0, -195), new Vector2(240, 45), new Color(0.6f, 0.2f, 0.2f));
+
+            pausePanel.SetActive(false);
+            uiMgr.pausePanel = pausePanel;
+
+            // ── WIN PANEL ──
+            GameObject existingWin = GameObject.Find("WinPanel");
+            if (existingWin != null) Object.DestroyImmediate(existingWin);
+
             GameObject winPanel = new GameObject("WinPanel");
             winPanel.transform.SetParent(canvas.transform, false);
             UnityEngine.UI.Image bg = winPanel.AddComponent<UnityEngine.UI.Image>();
-            bg.color = new Color(0, 0, 0, 0.85f);
+            bg.color = new Color(0.05f, 0.05f, 0.1f, 0.92f);
             RectTransform wpRect = winPanel.GetComponent<RectTransform>();
             wpRect.anchorMin = Vector2.zero;
             wpRect.anchorMax = Vector2.one;
             wpRect.sizeDelta = Vector2.zero;
-            winPanel.SetActive(false);
 
             // Win title text
             GameObject winTitle = new GameObject("WinTitle");
@@ -302,14 +375,10 @@ namespace EchoLoop.Editor
             uiMgr.winPanel = winPanel;
             uiMgr.winLoopCountText = lct;
 
-            // Restart Button
-            GameObject restartBtn = CreateButton(winPanel, "RestartButton", "PLAY AGAIN", new Vector2(0, -60), new Vector2(200, 55));
-            GameObject menuBtn = CreateButton(winPanel, "MenuButton", "MAIN MENU", new Vector2(0, -130), new Vector2(200, 55));
+            CreateButton(winPanel, "RestartButton", "PLAY AGAIN", new Vector2(0, -50), new Vector2(220, 55), new Color(0.15f, 0.6f, 0.95f));
+            CreateButton(winPanel, "MenuButton", "MAIN MENU", new Vector2(0, -120), new Vector2(220, 55), new Color(0.4f, 0.4f, 0.5f));
 
-            UnityEngine.UI.Button rBtn = restartBtn.GetComponent<UnityEngine.UI.Button>();
-            UnityEngine.UI.Button mBtn = menuBtn.GetComponent<UnityEngine.UI.Button>();
-            rBtn.onClick.AddListener(uiMgr.RestartGame);
-            mBtn.onClick.AddListener(uiMgr.GoToMainMenu);
+            winPanel.SetActive(false);
         }
 
         // ─────────────────────────────────────────────
@@ -319,11 +388,11 @@ namespace EchoLoop.Editor
         {
             var scenes = new[]
             {
-                new EditorBuildSettingsScene("Assets/EchoLoop/Scenes/Prototype.unity", true),
                 new EditorBuildSettingsScene("Assets/EchoLoop/Scenes/MainMenu.unity", true),
+                new EditorBuildSettingsScene("Assets/EchoLoop/Scenes/Prototype.unity", true),
             };
             EditorBuildSettings.scenes = scenes;
-            Debug.Log("Build settings updated: Prototype → MainMenu");
+            Debug.Log("Build settings configured: MainMenu (0) -> Prototype (1)");
         }
 
         // ─────────────────────────────────────────────
@@ -370,18 +439,18 @@ namespace EchoLoop.Editor
             SpriteRenderer sr = platform.AddComponent<SpriteRenderer>();
             sr.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Background.psd");
             sr.drawMode = SpriteDrawMode.Sliced;
-            sr.size = new Vector2(scale.x, scale.y);
+            sr.size = scale;
             sr.color = color;
-            BoxCollider2D collider = platform.AddComponent<BoxCollider2D>();
-            collider.size = new Vector2(scale.x, scale.y);
+            BoxCollider2D col = platform.AddComponent<BoxCollider2D>();
+            col.size = scale;
         }
 
-        static GameObject CreateButton(GameObject parent, string name, string label, Vector2 anchoredPos, Vector2 size)
+        static GameObject CreateButton(GameObject parent, string name, string label, Vector2 anchoredPos, Vector2 size, Color bgColor)
         {
             GameObject btnObj = new GameObject(name);
             btnObj.transform.SetParent(parent.transform, false);
             UnityEngine.UI.Image img = btnObj.AddComponent<UnityEngine.UI.Image>();
-            img.color = new Color(0.15f, 0.5f, 0.9f);
+            img.color = bgColor;
             UnityEngine.UI.Button btn = btnObj.AddComponent<UnityEngine.UI.Button>();
             RectTransform rect = btnObj.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0.5f, 0.5f);
@@ -394,7 +463,7 @@ namespace EchoLoop.Editor
             Text txt = textObj.AddComponent<Text>();
             txt.text = label;
             txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            txt.fontSize = 22;
+            txt.fontSize = 20;
             txt.fontStyle = FontStyle.Bold;
             txt.alignment = TextAnchor.MiddleCenter;
             txt.color = Color.white;
